@@ -29,13 +29,12 @@ body{
     overflow:hidden;
 }
 
-/* Moving Text */
 .chain{
     position:absolute;
     display:flex;
     align-items:center;
     white-space:nowrap;
-    animation:moveText 36s linear infinite;
+    animation:moveText 50s linear infinite;
     will-change:transform;
 }
 
@@ -61,6 +60,11 @@ body{
 
     text-transform:uppercase;
     text-shadow:none;
+}
+
+.letter{
+    display:inline-block;
+    position:relative;
 }
 
 @keyframes moveText{
@@ -98,67 +102,106 @@ body{
 
 const chain = document.getElementById("chain");
 
+const phrase = "PROCUREMENT AND ENGINEERING HUB";
+
 /* Create repeated text */
-for(let i=0;i<20;i++){
+for(let r=0;r<20;r++){
 
     const txt = document.createElement("div");
     txt.className = "text-item";
-    txt.textContent = "PROCUREMENT AND ENGINEERING HUB";
+
+    [...phrase].forEach(char=>{
+
+        const span = document.createElement("span");
+        span.className = "letter";
+        span.textContent = char;
+
+        txt.appendChild(span);
+    });
 
     chain.appendChild(txt);
 }
 
-/* Continuous Sparks */
 const sparks = [];
 
-function createSpark(){
+/* Emit sparks from every visible letter */
+function emitLetterSparks(){
 
-    const rect = chain.getBoundingClientRect();
+    const letters =
+        document.querySelectorAll('.letter');
 
-    for(let i=0;i<40;i++){
+    letters.forEach(letter=>{
 
-        const spark = document.createElement("div");
+        const rect =
+            letter.getBoundingClientRect();
+
+        if(
+            rect.right < 0 ||
+            rect.left > window.innerWidth
+        ){
+            return;
+        }
+
+        const spark =
+            document.createElement("div");
+
         spark.className = "spark";
 
         let x =
             rect.left +
-            Math.random() *
-            Math.min(rect.width, window.innerWidth + 800);
+            rect.width / 2 +
+            (Math.random()*8 - 4);
 
         let y =
-            rect.top +
-            rect.height -
-            20 +
-            Math.random() * 10;
+            rect.bottom - 6;
 
-        const size = Math.random() * 3 + 1.5;
+        const size =
+            Math.random()*2 + 1.5;
 
-        spark.style.width = size + "px";
-        spark.style.height = size + "px";
+        spark.style.width =
+            size + "px";
 
-        spark.style.left = x + "px";
-        spark.style.top = y + "px";
+        spark.style.height =
+            size + "px";
+
+        spark.style.left =
+            x + "px";
+
+        spark.style.top =
+            y + "px";
 
         document.body.appendChild(spark);
 
         sparks.push({
+
             el:spark,
+
             x:x,
             y:y,
-            vx:Math.random()*12 + 10,
-            vy:Math.random()*3 + 2,
+
+            vx:
+                Math.random()*8 + 8,
+
+            vy:
+                Math.random()*2 + 1,
+
             opacity:1
         });
-    }
+
+    });
 }
 
-/* Emit continuously */
-setInterval(createSpark,16);
+/* Dense continuous sparks */
+setInterval(emitLetterSparks,40);
 
-/* Smooth animation */
+/* Animate sparks */
 function animateSparks(){
 
-    for(let i=sparks.length-1;i>=0;i--){
+    for(
+        let i=sparks.length-1;
+        i>=0;
+        i--
+    ){
 
         const s = sparks[i];
 
@@ -166,22 +209,30 @@ function animateSparks(){
         s.y += s.vy;
 
         s.vx *= 0.985;
-        s.vy += 0.18;
+        s.vy += 0.15;
 
-        s.opacity -= 0.015;
+        s.opacity -= 0.02;
 
-        s.el.style.left = s.x + "px";
-        s.el.style.top = s.y + "px";
-        s.el.style.opacity = s.opacity;
+        s.el.style.left =
+            s.x + "px";
+
+        s.el.style.top =
+            s.y + "px";
+
+        s.el.style.opacity =
+            s.opacity;
 
         if(s.opacity <= 0){
 
             s.el.remove();
+
             sparks.splice(i,1);
         }
     }
 
-    requestAnimationFrame(animateSparks);
+    requestAnimationFrame(
+        animateSparks
+    );
 }
 
 animateSparks();
